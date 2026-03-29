@@ -73,7 +73,6 @@ export async function POST(req: NextRequest) {
         .eq('affiliate_code', affiliate_code.toUpperCase()).single()
       if (aff?.is_active) {
         affiliateId = aff.id
-        await supabase.from('affiliates').update({ total_referrals: supabase.rpc ? undefined : 0 }).eq('id', aff.id) // increment handled separately
       }
     }
 
