@@ -1,7 +1,10 @@
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect } from 'react'
 
 export default function HomePage() {
-  // vercel.json rewrites / → /landing.html (static site)
-  // If somehow Next catches this, redirect to reservar
-  redirect('/reservar')
+  useEffect(() => {
+    window.location.href = '/landing.html'
+  }, [])
+  return null
 }
