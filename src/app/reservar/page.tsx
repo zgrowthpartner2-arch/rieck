@@ -12,6 +12,7 @@ export default function ReservarPage() {
   const [step, setStep] = useState<Step>('experience')
   const [exp, setExp] = useState('')
   const [packages, setPackages] = useState<PackageItem[]>([])
+  const [urlExpHandled, setUrlExpHandled] = useState(false)
   const [mode, setMode] = useState<'solo' | 'acompanado' | 'grupo'>('solo')
   const [adults, setAdults] = useState(1)
   const [children, setChildren] = useState(0)
@@ -62,6 +63,19 @@ export default function ReservarPage() {
     })
     supabase.from('special_events').select('*').eq('active', true).then(({ data }) => { if (data) setSpecialEvents(data) })
   }, [])
+
+  // Read ?exp= from URL to pre-select experience and skip to date
+  useEffect(() => {
+    if (packages.length > 0 && !urlExpHandled) {
+      const params = new URLSearchParams(window.location.search)
+      const urlExp = params.get('exp')
+      if (urlExp && packages.some(p => p.slug === urlExp)) {
+        setExp(urlExp)
+        setStep('date')
+      }
+      setUrlExpHandled(true)
+    }
+  }, [packages, urlExpHandled])
 
   useEffect(() => { fetch('/api/reservas/availability?month=' + currentMonth).then(r => r.json()).then(d => setAvailability(d.days || {})).catch(() => { }) }, [currentMonth])
 

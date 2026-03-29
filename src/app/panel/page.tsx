@@ -84,7 +84,7 @@ export default function PanelPage() {
   const pend = reservas.filter(r => r.status === 'pending').length
 
   const tabs = isAdmin
-    ? [{ k: 'reservas', l: 'Reservas' }, { k: 'config', l: 'Configuración' }, { k: 'calendario', l: 'Calendario' }, { k: 'coupons', l: 'Cupones' }, { k: 'levels', l: 'Comisiones' }, { k: 'news', l: 'Noticias' }]
+    ? [{ k: 'reservas', l: 'Reservas' }, { k: 'config', l: 'Configuración' }, { k: 'calendario', l: 'Calendario' }, { k: 'coupons', l: 'Cupones' }, { k: 'levels', l: 'Comisiones' }, { k: 'users', l: 'Usuarios' }, { k: 'news', l: 'Noticias' }]
     : isAfiliado ? [{ k: 'reservas', l: 'Referidos' }, { k: 'storefront', l: 'Mi Tienda' }, { k: 'stats', l: 'Comisiones' }]
       : [{ k: 'reservas', l: 'Mis Reservas' }]
 
@@ -95,10 +95,10 @@ export default function PanelPage() {
         <div className="flex items-center gap-4"><span className="text-xs text-white/40">{profile.name || profile.email}</span><span className="text-[.55rem] uppercase tracking-wider px-2 py-0.5 bg-[#c5a55a]/10 text-[#c5a55a]">{profile.role}</span><button onClick={logout} className="text-xs text-white/30 hover:text-red-400">Salir</button></div>
       </nav>
       <div className="max-w-6xl mx-auto p-4 md:p-6">
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-[#132828] border border-[#1e3838] p-4"><div className="text-[.55rem] uppercase tracking-wider text-white/30 mb-1">Reservas</div><div className="font-display text-2xl text-[#f5f0e0]">{reservas.length}</div></div>
+        <div className={`grid ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mb-6`}>
+          <div className="bg-[#132828] border border-[#1e3838] p-4"><div className="text-[.55rem] uppercase tracking-wider text-white/30 mb-1">{isAdmin ? 'Reservas' : 'Mis Reservas'}</div><div className="font-display text-2xl text-[#f5f0e0]">{reservas.length}</div></div>
           <div className="bg-[#132828] border border-[#1e3838] p-4"><div className="text-[.55rem] uppercase tracking-wider text-white/30 mb-1">Pendientes</div><div className="font-display text-2xl text-yellow-400">{pend}</div></div>
-          <div className="bg-[#132828] border border-[#1e3838] p-4"><div className="text-[.55rem] uppercase tracking-wider text-white/30 mb-1">Ingresos</div><div className="font-display text-2xl text-green-400">{fm(rev)}</div></div>
+          {(isAdmin || isAfiliado) && <div className="bg-[#132828] border border-[#1e3838] p-4"><div className="text-[.55rem] uppercase tracking-wider text-white/30 mb-1">Ingresos</div><div className="font-display text-2xl text-green-400">{fm(rev)}</div></div>}
         </div>
         <div className="flex flex-wrap border-b border-[#1e3838] mb-6 gap-1">
           {tabs.map(t => <button key={t.k} onClick={() => setTab(t.k)} className={`px-3 pb-2 text-[.6rem] tracking-widest uppercase ${tab === t.k ? 'text-[#c5a55a] border-b-2 border-[#c5a55a]' : 'text-white/30'}`}>{t.l}</button>)}
@@ -153,6 +153,7 @@ export default function PanelPage() {
         {tab === 'calendario' && isAdmin && config && <CalendarAdmin config={config} uc={uc} packages={packages} />}
         {tab === 'coupons' && isAdmin && <CouponsPanel coupons={coupons} reload={async () => { const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false }); setCoupons(data || []) }} />}
         {tab === 'levels' && isAdmin && <LevelsPanel />}
+        {tab === 'users' && isAdmin && <UsersPanel />}
         {tab === 'news' && isAdmin && <NewsPanel uid={profile.id} />}
         {tab === 'storefront' && isAfiliado && <StorefrontPanel userId={profile.id} packages={packages} />}
         {tab === 'stats' && isAfiliado && <div className="bg-[#132828] border border-[#1e3838] p-6"><h3 className="font-display text-lg text-[#f5f0e0] mb-4">Mis Comisiones</h3><p className="text-xs text-white/30">Total referidos: {reservas.length} · Ingresos generados: {fm(rev)}</p></div>}
@@ -520,6 +521,85 @@ function LevelsPanel() {
       <div className="flex items-center gap-3"><span className="font-display text-2xl text-[#c5a55a]/30">{l.level}</span><div><div className="text-xs text-[#f5f0e0]">Nivel {l.level}</div><div className="text-[.55rem] text-white/20">{l.level === 1 ? 'Referido directo' : 'Nivel ' + l.level}</div></div></div>
       <div className="flex items-center gap-2"><Input type="number" step="0.5" defaultValue={l.percentage} onBlur={e => { supabase.from('commission_levels').update({ percentage: parseFloat(e.target.value) }).eq('level', l.level).then(ld) }} className="w-16 text-[#c5a55a] text-right p-1.5" /><span className="text-xs text-white/30">%</span><button onClick={() => { supabase.from('commission_levels').update({ is_active: !l.is_active }).eq('level', l.level).then(ld) }} className={`text-[.55rem] px-2 py-1 ${l.is_active ? 'text-green-400 bg-green-400/10' : 'text-red-400 bg-red-400/10'}`}>{l.is_active ? 'On' : 'Off'}</button></div>
     </div>)}</div></div>
+  )
+}
+
+// ========== USERS PANEL (admin) ==========
+function UsersPanel() {
+  const [users, setUsers] = useState<any[]>([])
+  const [search, setSearch] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  useEffect(() => { ld() }, [])
+  const ld = async () => { const { data } = await supabase.from('users').select('*').order('created_at', { ascending: false }); if (data) setUsers(data) }
+
+  const updateRole = async (id: string, role: string) => {
+    await supabase.from('users').update({ role, updated_at: new Date().toISOString() }).eq('id', id)
+    ld()
+  }
+  const updateUser = async (id: string, field: string, value: any) => {
+    await supabase.from('users').update({ [field]: value, updated_at: new Date().toISOString() }).eq('id', id)
+    ld()
+  }
+  const deleteUser = async (id: string, email: string) => {
+    if (!confirm(`¿Eliminar usuario "${email}"? Esta acción no se puede deshacer.`)) return
+    await supabase.from('users').delete().eq('id', id)
+    ld()
+  }
+
+  const filtered = users.filter(u => {
+    if (!search) return true
+    const s = search.toLowerCase()
+    return (u.name || '').toLowerCase().includes(s) || (u.email || '').toLowerCase().includes(s) || (u.phone || '').toLowerCase().includes(s)
+  })
+
+  const roleColor = (r: string) => r === 'admin' ? 'text-red-400 bg-red-400/10' : r === 'afiliado' ? 'text-[#c5a55a] bg-[#c5a55a]/10' : 'text-white/40 bg-white/5'
+
+  return (
+    <div className="bg-[#132828] border border-[#1e3838] p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-display text-lg text-[#f5f0e0]">Gestión de Usuarios</h3>
+        <span className="text-xs text-white/30">{users.length} usuarios</span>
+      </div>
+      <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre, email o teléfono..." className="w-full mb-4" />
+      <div className="space-y-2">
+        {filtered.map(u => (
+          <div key={u.id} className="border border-[#1e3838] p-3">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm text-[#f5f0e0] font-medium truncate">{u.name || 'Sin nombre'}</span>
+                  <span className={`text-[.5rem] uppercase tracking-wider px-1.5 py-0.5 ${roleColor(u.role)}`}>{u.role}</span>
+                </div>
+                <div className="text-[.6rem] text-white/30 mt-0.5">{u.email}{u.phone ? ' · ' + u.phone : ''}</div>
+                <div className="text-[.55rem] text-white/15">Creado: {new Date(u.created_at).toLocaleDateString('es-AR')}</div>
+              </div>
+              <div className="flex gap-1 ml-2 flex-shrink-0">
+                <button onClick={() => setEditingId(editingId === u.id ? null : u.id)} className="text-[.55rem] px-2 py-1 text-[#c5a55a] bg-[#c5a55a]/10">✏</button>
+                <button onClick={() => deleteUser(u.id, u.email)} className="text-[.55rem] px-2 py-1 text-red-400 bg-red-400/10">✕</button>
+              </div>
+            </div>
+            {editingId === u.id && <div className="border-t border-[#1e3838] mt-2 pt-2 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div><label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Nombre</label><Input defaultValue={u.name || ''} onBlur={e => updateUser(u.id, 'name', e.target.value)} className="w-full text-xs p-1.5" /></div>
+                <div><label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Teléfono</label><Input defaultValue={u.phone || ''} onBlur={e => updateUser(u.id, 'phone', e.target.value)} className="w-full text-xs p-1.5" /></div>
+              </div>
+              <div>
+                <label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Rol</label>
+                <div className="flex gap-2">
+                  {['cliente', 'afiliado', 'admin'].map(r => (
+                    <button key={r} onClick={() => updateRole(u.id, r)} className={`text-[.6rem] uppercase px-3 py-1.5 border ${u.role === r ? 'border-[#c5a55a] bg-[#c5a55a]/10 text-[#c5a55a]' : 'border-[#1e3838] text-white/30'}`}>{r}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <button onClick={() => updateUser(u.id, 'is_active', !u.is_active)} className={`text-[.6rem] px-3 py-1.5 ${u.is_active ? 'text-green-400 bg-green-400/10 border border-green-400/20' : 'text-red-400 bg-red-400/10 border border-red-400/20'}`}>{u.is_active ? 'Activo' : 'Inactivo'}</button>
+              </div>
+            </div>}
+          </div>
+        ))}
+        {filtered.length === 0 && <p className="text-center text-white/20 text-xs py-4">No se encontraron usuarios.</p>}
+      </div>
+    </div>
   )
 }
 
