@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #0c1a1a;
+  color: white;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #c5a55a;
+  color: #0c1a1a;
+}
+
+.font-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Custom colors for Tailwind v4 */
+@theme {
+  --color-bg: #0c1a1a;
+  --color-bg2: #0f2020;
+  --color-card: #132828;
+  --color-border: #1e3838;
+  --color-gold: #c5a55a;
+  --color-gold-l: #dcc07a;
+  --color-gold-d: #a08840;
+  --color-teal: #2a8a8a;
+  --color-teal-l: #4ab5b5;
+  --color-cream: #f5f0e0;
+}
+
+/* ===== FIX: Select/Dropdown dark theme ===== */
+select,
+select option {
+  background-color: #132828 !important;
+  color: #f5f0e0 !important;
+  border-color: #1e3838;
+}
+
+select:focus {
+  border-color: #c5a55a !important;
+  outline: none;
+}
+
+select option:hover,
+select option:checked {
+  background-color: #1e3838 !important;
+  color: #dcc07a !important;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c5a55a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px;
+  padding-right: 2rem;
+}
+
+/* ===== FIX: Input time/date dark theme ===== */
+input[type="time"],
+input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7) sepia(1) hue-rotate(10deg) brightness(1.2);
+}
+
+/* ===== Better scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e3838;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2a4a4a;
+}
+
+/* ===== Tooltip ===== */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0c1a1a;
+  border: 1px solid #1e3838;
+  color: #f5f0e0;
+  font-size: 0.65rem;
+  padding: 4px 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 50;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+}

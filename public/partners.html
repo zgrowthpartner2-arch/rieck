@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programa Partners — Rieck Glow Days</title>
+<meta name="description" content="Sumate a la red de Partners de Rieck Glow Days. Vendé experiencias, gestioná desde un panel y ganás comisión por cada reserva.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c1a1a;--bg2:#0f2020;--card:#132828;--border:#1e3838;--gold:#c5a55a;--gold-l:#dcc07a;--gold-b:#e8d48b;--gold-d:#a08840;--teal-l:#4ab5b5;--cream:#f5f0e0;--t1:rgba(255,255,255,.88);--t2:rgba(255,255,255,.55);--t3:rgba(255,255,255,.3);--ff:'Playfair Display',Georgia,serif;--fb:'DM Sans',sans-serif}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}body{font-family:var(--fb);background:var(--bg);color:white;-webkit-font-smoothing:antialiased}::selection{background:var(--gold);color:var(--bg)}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 3rem;display:flex;align-items:center;justify-content:space-between;background:rgba(12,26,26,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(197,165,90,.1)}.nav-logo{display:flex;flex-direction:column;align-items:center;text-decoration:none}.nav-logo-main{font-family:var(--ff);font-size:1.6rem;font-weight:600;color:var(--gold-l);letter-spacing:.08em;line-height:1}.nav-logo-sub{font-size:.5rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);opacity:.6}.nav-back{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);text-decoration:none;transition:color .3s;display:flex;align-items:center;gap:.5rem}.nav-back:hover{color:var(--gold-l)}
+.hero-sub{padding:10rem 3rem 5rem;text-align:center;background:linear-gradient(180deg,var(--bg2),var(--bg))}.hero-sub .stag{font-size:.62rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem;font-weight:500}.hero-sub h1{font-family:var(--ff);font-size:clamp(2.5rem,5vw,3.8rem);font-weight:500;line-height:1.2;margin-bottom:1rem}.hero-sub h1 .gold{color:var(--gold-l)}.hero-sub h1 em{font-style:italic}.hero-sub p{font-size:1rem;color:var(--t2);max-width:550px;margin:0 auto;line-height:1.8;font-weight:300}
+.container{max-width:1000px;margin:0 auto}
+section{padding:5rem 3rem}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin:4rem auto}
+.step{background:var(--card);border:1px solid var(--border);padding:2.5rem;position:relative;overflow:hidden;transition:all .4s}
+.step:hover{border-color:rgba(197,165,90,.2);transform:translateY(-3px)}
+.step::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .4s}.step:hover::before{opacity:1}
+.step-num{font-family:var(--ff);font-size:3rem;color:var(--gold);opacity:.3;font-weight:400;line-height:1;margin-bottom:1rem}
+.step h3{font-family:var(--ff);font-size:1.2rem;font-weight:500;color:var(--cream);margin-bottom:.4rem}
+.step p{font-size:.85rem;color:var(--t2);line-height:1.7;font-weight:300}
+.benefits{padding:4rem 3rem;background:var(--bg2)}
+.ben-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:1000px;margin:2.5rem auto 0}
+.ben{text-align:center;padding:2rem 1.5rem;border:1px solid var(--border);background:var(--card);transition:all .4s}
+.ben:hover{border-color:rgba(42,138,138,.25)}.ben .ico{font-size:2rem;margin-bottom:.8rem;display:block}
+.ben h4{font-family:var(--ff);font-size:1rem;color:var(--cream);margin-bottom:.3rem;font-weight:500}
+.ben p{font-size:.78rem;color:var(--t2);line-height:1.6;font-weight:300}
+.cta-box{text-align:center;padding:5rem 3rem;background:linear-gradient(135deg,rgba(197,165,90,.08),rgba(42,138,138,.04));border-top:1px solid rgba(197,165,90,.1)}
+.cta-box h2{font-family:var(--ff);font-size:2rem;font-weight:500;color:var(--gold-l);margin-bottom:.5rem}
+.cta-box p{font-size:.9rem;color:var(--t2);margin-bottom:2rem;font-weight:300}
+.btn-gold{display:inline-block;padding:1rem 2.8rem;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--bg);font-family:var(--fb);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;font-weight:600;transition:all .4s}.btn-gold:hover{box-shadow:0 8px 35px rgba(197,165,90,.3);transform:translateY(-2px)}
+.foot{background:var(--bg);border-top:1px solid var(--border);padding:2rem 3rem;text-align:center;font-size:.7rem;color:var(--t3)}
+.foot a{color:var(--gold);text-decoration:none}
+@media(max-width:768px){.steps,.ben-grid{grid-template-columns:1fr}.nav{padding:1rem 1.5rem}section{padding:3rem 1.5rem}}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="/" class="nav-logo"><span class="nav-logo-main">Rieck</span><span class="nav-logo-sub">Glow Days</span></a><a href="/" class="nav-back">← Volver al sitio</a></nav>
+
+<div class="hero-sub">
+<div class="stag">Programa Partners</div>
+<h1>Vendé experiencias,<br>generá <span class="gold"><em>ingresos</em></span></h1>
+<p>Sumate a nuestra red de partners. Recomendá nuestras experiencias, gestioná todo desde un panel y ganás comisión por cada reserva confirmada.</p>
+</div>
+
+<section><div class="container">
+<div style="text-align:center"><div class="stag">Cómo Funciona</div><h2 style="font-family:var(--ff);font-size:2rem;font-weight:500;color:var(--cream)">4 pasos para <span style="color:var(--gold-l)"><em>empezar</em></span></h2></div>
+<div class="steps">
+<div class="step"><div class="step-num">01</div><h3>Registrate</h3><p>Completá tu solicitud por WhatsApp y en 24hs te activamos tu cuenta de Partner.</p></div>
+<div class="step"><div class="step-num">02</div><h3>Recibí tu Link</h3><p>Te asignamos un link personalizado único para que compartas con tu audiencia, clientes o seguidores.</p></div>
+<div class="step"><div class="step-num">03</div><h3>Generá Ventas</h3><p>Cada reserva que llegue a través de tu link queda registrada en tu panel con seguimiento en tiempo real.</p></div>
+<div class="step"><div class="step-num">04</div><h3>Cobrá tu Comisión</h3><p>Liquidación mensual con transferencia directa. Sin complicaciones, sin demoras.</p></div>
+</div>
+</div></section>
+
+<section class="benefits">
+<div style="text-align:center"><div class="stag">Beneficios</div><h2 style="font-family:var(--ff);font-size:2rem;font-weight:500;color:var(--cream)">¿Por qué ser <span style="color:var(--gold-l)"><em>Partner?</em></span></h2></div>
+<div class="ben-grid">
+<div class="ben"><span class="ico">📊</span><h4>Panel Propio</h4><p>Dashboard con ventas, comisiones acumuladas y estado de pagos en tiempo real.</p></div>
+<div class="ben"><span class="ico">🔗</span><h4>Links de Venta</h4><p>Link personalizado con tracking automático para todas tus referencias.</p></div>
+<div class="ben"><span class="ico">💰</span><h4>Comisiones Atractivas</h4><p>Porcentaje competitivo por cada reserva confirmada a través de tu link.</p></div>
+<div class="ben"><span class="ico">📱</span><h4>Material de Difusión</h4><p>Flyers, imágenes y contenido listo para compartir en redes y WhatsApp.</p></div>
+<div class="ben"><span class="ico">🤝</span><h4>Soporte Dedicado</h4><p>Contacto directo con nuestro equipo para resolver dudas y optimizar ventas.</p></div>
+<div class="ben"><span class="ico">⚡</span><h4>Pagos Puntuales</h4><p>Liquidación mensual garantizada con transferencia bancaria directa.</p></div>
+</div>
+</section>
+
+<div class="cta-box">
+<h2>¿Listo para empezar?</h2>
+<p>Escribinos por WhatsApp y te activamos como Partner en 24hs.</p>
+<a href="https://wa.me/5491163065144?text=Hola!%20Quiero%20sumarme%20al%20Programa%20Partners%20de%20Rieck" target="_blank" class="btn-gold">Quiero ser Partner</a>
+</div>
+
+<footer class="foot">© 2026 Rieck Glow Days · <a href="/">Volver al sitio</a></footer>
+</body>
+</html>

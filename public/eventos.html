@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rieck Eventos — Quinces, Bodas, Corporativos</title>
+<meta name="description" content="Celebrá tu evento en Rieck. Salones, parque, piscina, vagón comedor y coctelería para quinceaños, bodas, casamientos, corporativos y eventos privados.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c1a1a;--bg2:#0f2020;--card:#132828;--border:#1e3838;--gold:#c5a55a;--gold-l:#dcc07a;--gold-b:#e8d48b;--gold-d:#a08840;--teal-l:#4ab5b5;--cream:#f5f0e0;--t1:rgba(255,255,255,.88);--t2:rgba(255,255,255,.55);--t3:rgba(255,255,255,.3);--ff:'Playfair Display',Georgia,serif;--fb:'DM Sans',sans-serif}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}body{font-family:var(--fb);background:var(--bg);color:white;-webkit-font-smoothing:antialiased;overflow-x:hidden}::selection{background:var(--gold);color:var(--bg)}img{display:block;width:100%;height:100%;object-fit:cover}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 3rem;display:flex;align-items:center;justify-content:space-between;background:rgba(12,26,26,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(197,165,90,.1)}.nav-logo{display:flex;flex-direction:column;align-items:center;text-decoration:none}.nav-logo-main{font-family:var(--ff);font-size:1.6rem;font-weight:600;color:var(--gold-l);letter-spacing:.08em;line-height:1}.nav-logo-sub{font-size:.5rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);opacity:.6}.nav-back{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--t2);text-decoration:none;transition:color .3s;display:flex;align-items:center;gap:.5rem}.nav-back:hover{color:var(--gold-l)}
+.hero-ev{position:relative;padding:10rem 3rem 5rem;text-align:center;background:linear-gradient(180deg,var(--bg2),var(--bg));overflow:hidden}
+.hero-ev::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(197,165,90,.06),transparent 60%)}
+.hero-ev .stag{font-size:.62rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem;font-weight:500;position:relative}
+.hero-ev h1{font-family:var(--ff);font-size:clamp(2.5rem,5vw,3.8rem);font-weight:500;line-height:1.2;margin-bottom:1rem;position:relative}.hero-ev h1 .gold{color:var(--gold-l)}.hero-ev h1 em{font-style:italic}
+.hero-ev p{font-size:1rem;color:var(--t2);max-width:600px;margin:0 auto;line-height:1.8;font-weight:300;position:relative}
+.container{max-width:1100px;margin:0 auto}
+section{padding:5rem 3rem}
+.ev-types{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;margin:3.5rem auto 0;max-width:1100px}
+.ev-type{background:var(--card);border:1px solid var(--border);padding:2.5rem 2rem;text-align:center;transition:all .4s;position:relative;overflow:hidden}
+.ev-type:hover{border-color:rgba(197,165,90,.2);transform:translateY(-4px);box-shadow:0 15px 40px rgba(0,0,0,.3)}
+.ev-type::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .4s}.ev-type:hover::before{opacity:1}
+.ev-type .ico{font-size:2.5rem;margin-bottom:1rem;display:block}
+.ev-type h3{font-family:var(--ff);font-size:1.3rem;font-weight:500;color:var(--cream);margin-bottom:.5rem}
+.ev-type p{font-size:.82rem;color:var(--t2);line-height:1.6;font-weight:300}
+.features{background:var(--bg2);padding:5rem 3rem}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;max-width:1100px;margin:3rem auto 0}
+.feat{display:flex;gap:1.2rem;align-items:flex-start;padding:1.5rem;background:var(--card);border:1px solid var(--border);transition:all .3s}
+.feat:hover{border-color:rgba(42,138,138,.2)}
+.feat-ico{width:44px;height:44px;flex-shrink:0;border:1px solid rgba(197,165,90,.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:rgba(197,165,90,.05)}
+.feat h4{font-family:var(--ff);font-size:1rem;font-weight:500;color:var(--cream);margin-bottom:.2rem}
+.feat p{font-size:.78rem;color:var(--t2);line-height:1.6;font-weight:300}
+.gallery-ev{padding:5rem 0;overflow:hidden;background:var(--bg)}
+.gallery-ev-header{text-align:center;padding:0 3rem;margin-bottom:3rem}
+.gallery-ev-scroll{display:flex;gap:1rem;padding:0 3rem;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.gallery-ev-scroll::-webkit-scrollbar{display:none}
+.gallery-ev-item{flex:0 0 350px;height:250px;scroll-snap-align:start;overflow:hidden;border:1px solid var(--border)}
+.gallery-ev-item img{transition:transform .5s}.gallery-ev-item:hover img{transform:scale(1.05)}
+.cta-ev{text-align:center;padding:5rem 3rem;background:linear-gradient(135deg,rgba(197,165,90,.08),rgba(42,138,138,.04));border-top:1px solid rgba(197,165,90,.1)}
+.cta-ev h2{font-family:var(--ff);font-size:2rem;font-weight:500;color:var(--gold-l);margin-bottom:.5rem}
+.cta-ev p{font-size:.9rem;color:var(--t2);margin-bottom:.3rem;font-weight:300}
+.cta-ev .small{font-size:.75rem;color:var(--t3);margin-bottom:2rem}
+.btn-gold{display:inline-block;padding:1rem 2.8rem;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--bg);font-family:var(--fb);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;font-weight:600;transition:all .4s}.btn-gold:hover{box-shadow:0 8px 35px rgba(197,165,90,.3);transform:translateY(-2px)}
+.foot{background:var(--bg);border-top:1px solid var(--border);padding:2rem 3rem;text-align:center;font-size:.7rem;color:var(--t3)}.foot a{color:var(--gold);text-decoration:none}
+.stag{font-size:.62rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem;font-weight:500}
+@media(max-width:768px){.ev-types{grid-template-columns:1fr}.feat-grid{grid-template-columns:1fr}.nav{padding:1rem 1.5rem}section{padding:3rem 1.5rem}.gallery-ev-item{flex:0 0 280px;height:200px}}
+</style>
+</head>
+<body>
+<nav class="nav"><a href="/" class="nav-logo"><span class="nav-logo-main">Rieck</span><span class="nav-logo-sub">Eventos</span></a><a href="/" class="nav-back">← Volver al sitio</a></nav>
+
+<div class="hero-ev">
+<div class="stag">Rieck Eventos</div>
+<h1>Tu evento en un<br>escenario <span class="gold"><em>único</em></span></h1>
+<p>Celebrá en un entorno que combina naturaleza, arquitectura y gastronomía de primer nivel. Salones, parque, piscina olímpica, vagón comedor y coctelería para hacer de tu evento algo inolvidable.</p>
+</div>
+
+<section><div class="container">
+<div style="text-align:center"><div class="stag">Tipos de Eventos</div><h2 style="font-family:var(--ff);font-size:2rem;font-weight:500;color:var(--cream)">Cada celebración merece un <span style="color:var(--gold-l)"><em>lugar especial</em></span></h2></div>
+<div class="ev-types">
+<div class="ev-type"><span class="ico">👑</span><h3>Quinceaños</h3><p>Un escenario mágico para los 15. Piscina iluminada, parque, coctelería, música y decoración personalizada.</p></div>
+<div class="ev-type"><span class="ico">💍</span><h3>Bodas & Casamientos</h3><p>Ceremonia y fiesta en un entorno natural con cascada, fogones, vagón comedor y piscina olímpica como telón de fondo.</p></div>
+<div class="ev-type"><span class="ico">🏢</span><h3>Corporativos</h3><p>Team building, presentaciones, lanzamientos y after office. Salones equipados con tecnología y catering premium.</p></div>
+<div class="ev-type"><span class="ico">🎉</span><h3>Eventos Privados</h3><p>Cumpleaños, aniversarios, despedidas. Alquilá el espacio completo o sectores para tu celebración a medida.</p></div>
+</div>
+</div></section>
+
+<section class="features">
+<div style="text-align:center"><div class="stag">¿Qué Incluye?</div><h2 style="font-family:var(--ff);font-size:2rem;font-weight:500;color:var(--cream)">Todo lo que <span style="color:var(--gold-l)"><em>necesitás</em></span></h2></div>
+<div class="feat-grid">
+<div class="feat"><div class="feat-ico">🏊</div><div><h4>Piscina Olímpica</h4><p>Climatizada con iluminación LED nocturna. Pool party o ambientación elegante.</p></div></div>
+<div class="feat"><div class="feat-ico">🚂</div><div><h4>Vagón Comedor</h4><p>Espacio exclusivo para cenas íntimas de hasta 40 personas con coctelería.</p></div></div>
+<div class="feat"><div class="feat-ico">🌳</div><div><h4>Parque & Cascada</h4><p>Más de 2000m² de parque con cascada natural, fogones, deck y reposeras.</p></div></div>
+<div class="feat"><div class="feat-ico">🍽</div><div><h4>Catering Premium</h4><p>Cocina de autor, parrilla, estaciones de comida, barra de tragos y coctelería.</p></div></div>
+<div class="feat"><div class="feat-ico">🎵</div><div><h4>Sonido & DJ</h4><p>Sistema de sonido profesional, iluminación escénica y coordinación de DJ.</p></div></div>
+<div class="feat"><div class="feat-ico">📸</div><div><h4>Ambientación</h4><p>Decoración personalizada, arreglos florales, cartelería y photobooth.</p></div></div>
+<div class="feat"><div class="feat-ico">🅿️</div><div><h4>Estacionamiento</h4><p>Estacionamiento privado amplio con seguridad para todos tus invitados.</p></div></div>
+<div class="feat"><div class="feat-ico">👨‍🍳</div><div><h4>Coordinación</h4><p>Event planner dedicado para acompañarte en toda la organización.</p></div></div>
+</div>
+</section>
+
+<section class="gallery-ev">
+<div class="gallery-ev-header"><div class="stag">Espacios</div><h2 style="font-family:var(--ff);font-size:2rem;font-weight:500;color:var(--cream)">Conocé los <span style="color:var(--gold-l)"><em>escenarios</em></span></h2></div>
+<div class="gallery-ev-scroll">
+<div class="gallery-ev-item"><img src="img/heroes/h1.webp" alt="Vagón y piscina" loading="lazy"></div>
+<div class="gallery-ev-item"><img src="img/heroes/fachada.webp" alt="Fachada" loading="lazy"></div>
+<div class="gallery-ev-item"><img src="img/heroes/h4.webp" alt="Nocturno" loading="lazy"></div>
+<div class="gallery-ev-item"><img src="img/heroes/h6.webp" alt="Parque" loading="lazy"></div>
+<div class="gallery-ev-item"><img src="img/heroes/h7.webp" alt="Cascada" loading="lazy"></div>
+<div class="gallery-ev-item"><img src="img/heroes/h3.webp" alt="Vagón" loading="lazy"></div>
+<div class="gallery-ev-item"><img src="img/heroes/h9.webp" alt="Exterior" loading="lazy"></div>
+</div>
+</section>
+
+<div class="cta-ev">
+<h2>Hagamos tu evento realidad</h2>
+<p>Contanos qué tipo de evento tenés en mente y te armamos una propuesta a medida.</p>
+<p class="small">Presupuestos personalizados · Sin compromiso</p>
+<a href="https://wa.me/5491163065144?text=Hola!%20Quiero%20info%20para%20un%20evento%20en%20Rieck" target="_blank" class="btn-gold">Consultar por WhatsApp</a>
+</div>
+
+<footer class="foot">© 2026 Rieck Glow Days · <a href="/">Volver al sitio</a></footer>
+</body>
+</html>
