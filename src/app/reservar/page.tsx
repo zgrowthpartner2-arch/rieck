@@ -181,8 +181,8 @@ export default function ReservarPage() {
           <h3 className="font-display text-lg text-[#f5f0e0]">Próximas Fechas Especiales</h3>
           <button onClick={() => setShowEventsPopup(false)} className="text-[#c5a55a] text-xl">✕</button>
         </div>
-        <p className="text-[.55rem] text-white/20 mb-3">Tocá una fecha para seleccionarla</p>
-        {specialEvents.length === 0 && <p className="text-white/30 text-sm text-center py-4">No hay eventos programados.</p>}
+        <p className="text-xs text-[#c5a55a]/60 mb-3">Tocá una fecha para seleccionarla en el calendario</p>
+        {specialEvents.filter(e => e.date >= today).length === 0 && <div className="text-center py-8"><div className="text-2xl mb-2">📅</div><p className="text-white/40 text-sm">No hay eventos especiales programados.</p><p className="text-white/20 text-xs mt-1">Los eventos se crean desde el panel de administración.</p></div>}
         {specialEvents.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date)).map(ev => (
           <div key={ev.id} onClick={() => selectEventDate(ev.date)} className="border-b border-[#1e3838] py-3 last:border-0 cursor-pointer hover:bg-[#c5a55a]/5 transition-all px-2 -mx-2">
             <div className="flex justify-between items-start">
