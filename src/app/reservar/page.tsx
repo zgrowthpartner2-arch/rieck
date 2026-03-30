@@ -50,7 +50,10 @@ export default function ReservarPage() {
 
   const subtotal = price * personCount
   const total = Math.max(0, subtotal - discount + extrasTotal)
-  const includes = selectedPkg?.includes || []
+  const DEFAULT_GLOW = ['7 horas de estadía con uso libre de instalaciones','Estacionamiento gratuito','Desayuno y almuerzo','Masaje descontracturante','Bebida (jugo, agua saborizada, gaseosa)']
+  const DEFAULT_BLACK = ['7 horas de estadía con uso libre de instalaciones','Estacionamiento gratuito','Merienda y cena show','Masaje descontracturante','Bebida (jugo, agua saborizada, gaseosa)']
+  const pkgIncludes = selectedPkg?.includes || []
+  const includes = pkgIncludes.length > 0 ? pkgIncludes : (exp === 'glow_days' ? DEFAULT_GLOW : exp === 'black_nights' ? DEFAULT_BLACK : [])
   const fmtMoney = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
   useEffect(() => {
@@ -163,6 +166,14 @@ export default function ReservarPage() {
     </div>
   )
 
+  const selectEventDate = (date: string) => {
+    setSelectedDate(date)
+    // Navigate calendar to that month
+    const [y, m] = date.split('-').map(Number)
+    setCurrentMonth(y + '-' + String(m).padStart(2, '0'))
+    setShowEventsPopup(false)
+  }
+
   const EventsPopup = () => (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setShowEventsPopup(false)}>
       <div className="bg-[#132828] border border-[#1e3838] p-6 max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -170,9 +181,10 @@ export default function ReservarPage() {
           <h3 className="font-display text-lg text-[#f5f0e0]">Próximas Fechas Especiales</h3>
           <button onClick={() => setShowEventsPopup(false)} className="text-[#c5a55a] text-xl">✕</button>
         </div>
+        <p className="text-[.55rem] text-white/20 mb-3">Tocá una fecha para seleccionarla</p>
         {specialEvents.length === 0 && <p className="text-white/30 text-sm text-center py-4">No hay eventos programados.</p>}
         {specialEvents.filter(e => e.date >= today).sort((a, b) => a.date.localeCompare(b.date)).map(ev => (
-          <div key={ev.id} className="border-b border-[#1e3838] py-3 last:border-0">
+          <div key={ev.id} onClick={() => selectEventDate(ev.date)} className="border-b border-[#1e3838] py-3 last:border-0 cursor-pointer hover:bg-[#c5a55a]/5 transition-all px-2 -mx-2">
             <div className="flex justify-between items-start">
               <div>
                 <span className="text-pink-300 font-display font-medium text-sm">🎉 {ev.title}</span>

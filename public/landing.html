@@ -128,7 +128,7 @@ section{padding:6rem 3rem;position:relative}.stag{font-size:.62rem;letter-spacin
 <!-- NAV -->
 <nav class="nav" id="nav">
 <a href="#" class="nav-logo"><span class="nav-logo-main">Rieck</span><span class="nav-logo-sub" style="color:white;opacity:.9">Glow Days & Nights</span></a>
-<div class="nav-links"><a href="#experiencias">Experiencias</a><a href="#gastronomia">Gastronomía</a><a href="#galeria">Galería</a><a href="#faq">FAQ</a><a href="eventos.html">Eventos</a><a href="/reservar" class="nav-cta">Reservar</a></div>
+<div class="nav-links"><a href="#experiencias">Experiencias</a><a href="#gastronomia">Gastronomía</a><a href="#galeria">Galería</a><a href="#faq">FAQ</a><a href="eventos.html">Eventos</a><a href="/login">Mi cuenta</a><a href="/reservar" class="nav-cta">Reservar</a></div>
 <div style="display:flex;align-items:center;gap:1.2rem">
 <a href="/login" class="nav-mobile-cta">Mi cuenta</a>
 <div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
@@ -190,7 +190,7 @@ section{padding:6rem 3rem;position:relative}.stag{font-size:.62rem;letter-spacin
 <p>7 horas de completo bienestar al aire libre con uso completo de las instalaciones: Gym, piscina olímpica y jacuzzis climatizados, sauna, solarium, parque con cascada, fogones a leña, reposeras colgantes y gastronomía de autor.</p>
 <div class="exp-tags"><span class="exp-tag">7 horas de estadía</span><span class="exp-tag">Uso libre de las instalaciones</span><span class="exp-tag">Almuerzo</span><span class="exp-tag">Merienda</span><span class="exp-tag">Bebida</span><span class="exp-tag">Sesión de masajes</span></div>
 <div class="exp-foot">
-<div class="exp-price">$85.000 <span>/ persona</span></div>
+<div class="exp-price"><span id="price-glow">$85.000</span> <span>/ persona</span></div>
 <a href="/reservar?exp=glow_days" class="btn-gold" style="padding:.6rem 1.2rem;font-size:.65rem">Reservar</a>
 </div></div></div>
 
@@ -202,7 +202,7 @@ section{padding:6rem 3rem;position:relative}.stag{font-size:.62rem;letter-spacin
 <p>7 horas de completo bienestar con uso completo de las instalaciones: piscina iluminada con LED, jacuzzis, sauna, fogones bajo las estrellas, coctelería artesanal, música, cena show y ambiente íntimo.</p>
 <div class="exp-tags"><span class="exp-tag">7 horas de estadía</span><span class="exp-tag">Uso libre de las instalaciones</span><span class="exp-tag">Merienda</span><span class="exp-tag">Cena Show</span><span class="exp-tag">Animación</span><span class="exp-tag">Música</span><span class="exp-tag">Fogones</span><span class="exp-tag">Sesión de masajes</span></div>
 <div class="exp-foot">
-<div class="exp-price">$120.000 <span>/ persona</span></div>
+<div class="exp-price"><span id="price-black">$120.000</span> <span>/ persona</span></div>
 <a href="/reservar?exp=black_nights" class="btn-gold" style="padding:.6rem 1.2rem;font-size:.65rem">Reservar</a>
 </div></div></div>
 
@@ -461,6 +461,19 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLb();closeBook
 // Reveals
 const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:.1,rootMargin:'0px 0px -30px 0px'});document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 document.querySelectorAll('.exp-card').forEach((c,i)=>c.style.transitionDelay=`${i*.12}s`);document.querySelectorAll('.gc').forEach((c,i)=>c.style.transitionDelay=`${i*.1}s`);
+
+// Dynamic prices from Supabase packages table
+(async function(){
+  try{
+    const res=await fetch('https://dvspbqrqubcndqyitdac.supabase.co/rest/v1/packages?is_active=eq.true&order=sort_order',{headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2c3BicXJxdWJjbmRxeWl0ZGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MTU1MTIsImV4cCI6MjA5MDI5MTUxMn0.jDwep9bVplOhp_e4BWFVQAgEdafezrnoxyjCo4wRCMM'}});
+    const pkgs=await res.json();
+    const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
+    pkgs.forEach(p=>{
+      if(p.slug==='glow_days'){const el=document.getElementById('price-glow');if(el)el.textContent=fmt(p.public_price)}
+      if(p.slug==='black_nights'){const el=document.getElementById('price-black');if(el)el.textContent=fmt(p.public_price)}
+    });
+  }catch(e){console.log('Price fetch error',e)}
+})();
 </script>
 </body>
 </html>
