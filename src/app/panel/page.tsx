@@ -33,6 +33,7 @@ export default function PanelPage() {
   const [tab, setTab] = useState('reservas')
   const [showExtrasPopup, setShowExtrasPopup] = useState(false)
   const [showNewReserva, setShowNewReserva] = useState(false)
+  const [viewAs, setViewAs] = useState<any>(null)
 
   useEffect(() => { loadProfile() }, [])
 
@@ -77,6 +78,11 @@ export default function PanelPage() {
 
   if (loading) return <div className="min-h-screen bg-[#0c1a1a] flex items-center justify-center"><div className="text-[#c5a55a] font-display text-xl animate-pulse">Cargando...</div></div>
   if (!profile) return null
+
+  // VIEW AS another user
+  if (viewAs) {
+    return <ViewAsPanel viewUser={viewAs} onBack={() => setViewAs(null)} />
+  }
 
   const isAdmin = profile.role === 'admin'
   const isAfiliado = profile.role === 'afiliado'
@@ -190,7 +196,7 @@ export default function PanelPage() {
         {tab === 'calendario' && isAdmin && config && <CalendarAdmin config={config} uc={uc} packages={packages} />}
         {tab === 'coupons' && isAdmin && <CouponsPanel coupons={coupons} reload={async () => { const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false }); setCoupons(data || []) }} />}
         {tab === 'levels' && isAdmin && <LevelsPanel />}
-        {tab === 'users' && isAdmin && <UsersPanel />}
+        {tab === 'users' && isAdmin && <UsersPanel currentUserId={profile.id} onViewAs={(u: any) => setViewAs(u)} />}
         {tab === 'news' && isAdmin && <NewsPanel uid={profile.id} />}
         {tab === 'storefront' && isAfiliado && <StorefrontPanel userId={profile.id} packages={packages} />}
         {tab === 'stats' && isAfiliado && <div className="bg-[#132828] border border-[#1e3838] p-6"><h3 className="font-display text-lg text-[#f5f0e0] mb-4">Mis Comisiones</h3><p className="text-xs text-white/30">Total referidos: {reservas.length} · Ingresos generados: {fm(rev)}</p></div>}
@@ -561,15 +567,89 @@ function LevelsPanel() {
   )
 }
 
+// ========== VIEW AS PANEL (admin sees user's view) ==========
+function ViewAsPanel({ viewUser, onBack }: { viewUser: any; onBack: () => void }) {
+  const [reservas, setReservas] = useState<any[]>([])
+  const [aff, setAff] = useState<any>(null)
+
+  useEffect(() => {
+    loadUserData()
+  }, [viewUser])
+
+  const loadUserData = async () => {
+    let q = supabase.from('reservations').select('*').order('created_at', { ascending: false })
+    if (viewUser.role === 'afiliado') {
+      const { data: a } = await supabase.from('affiliates').select('*').eq('user_id', viewUser.id).single()
+      if (a) { setAff(a); q = q.eq('affiliate_id', a.id) }
+    } else if (viewUser.role === 'cliente') {
+      q = q.eq('user_id', viewUser.id)
+    }
+    const { data } = await q; setReservas(data || [])
+  }
+
+  const fm = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
+  const rev = reservas.filter(r => r.status === 'paid').reduce((s, r) => s + r.total, 0)
+  const scFn = (s: string) => s === 'paid' ? 'text-green-400 bg-green-400/10' : s === 'pending' ? 'text-yellow-400 bg-yellow-400/10' : s === 'cancelled' ? 'text-red-400 bg-red-400/10' : 'text-blue-400 bg-blue-400/10'
+  const slFn = (s: string) => ({ pending: 'Pendiente', paid: 'Pagado', cancelled: 'Cancelado', completed: 'Completado' }[s] || s)
+
+  return (
+    <div className="min-h-screen bg-[#0c1a1a]">
+      {/* Admin bar */}
+      <div className="bg-red-400/10 border-b border-red-400/20 px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-red-400">👁 Viendo como:</span>
+          <span className="text-xs text-[#f5f0e0] font-medium">{viewUser.name || viewUser.email}</span>
+          <span className="text-[.5rem] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 text-white/30">{viewUser.role}</span>
+        </div>
+        <button onClick={onBack} className="px-4 py-1.5 bg-red-400/10 text-red-400 text-xs border border-red-400/20 hover:bg-red-400/20">← Volver a mi panel</button>
+      </div>
+
+      <nav className="border-b border-[#1e3838] bg-[#132828] px-4 py-3 flex items-center justify-between">
+        <span className="font-display text-lg font-semibold text-[#dcc07a]">Rieck</span>
+        <span className="text-xs text-white/40">{viewUser.name || viewUser.email}</span>
+      </nav>
+
+      <div className="max-w-6xl mx-auto p-4 md:p-6">
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="bg-[#132828] border border-[#1e3838] p-4"><div className="text-[.55rem] uppercase tracking-wider text-white/30 mb-1">{viewUser.role === 'afiliado' ? 'Referidos' : 'Reservas'}</div><div className="font-display text-2xl text-[#f5f0e0]">{reservas.length}</div></div>
+          {viewUser.role === 'afiliado' && <div className="bg-[#132828] border border-[#1e3838] p-4"><div className="text-[.55rem] uppercase tracking-wider text-white/30 mb-1">Ingresos generados</div><div className="font-display text-2xl text-green-400">{fm(rev)}</div></div>}
+          {viewUser.role === 'cliente' && <div className="bg-[#132828] border border-[#1e3838] p-4"><div className="text-[.55rem] uppercase tracking-wider text-white/30 mb-1">Pendientes</div><div className="font-display text-2xl text-yellow-400">{reservas.filter(r => r.status === 'pending').length}</div></div>}
+        </div>
+
+        {/* Affiliate info */}
+        {viewUser.role === 'afiliado' && aff && <div className="bg-[#132828] border border-[#1e3838] p-4 mb-4 text-xs text-white/40">
+          <p>Código: <span className="font-mono text-[#dcc07a]">{aff.affiliate_code}</span> · Tienda: {aff.storefront_enabled ? 'On' : 'Off'} · Comisión custom: {aff.custom_commission_percent ? aff.custom_commission_percent + '%' : 'Estándar'}</p>
+        </div>}
+
+        {/* Reservas list */}
+        <div className="space-y-2">
+          {reservas.length === 0 && <p className="text-center text-white/30 text-sm py-8">No hay reservas.</p>}
+          {reservas.map(r => <div key={r.id} className="bg-[#132828] border border-[#1e3838] p-4">
+            <div className="flex items-start justify-between mb-1"><div><span className="font-mono text-sm text-[#dcc07a] font-semibold">{r.code}</span><span className={`ml-2 text-[.6rem] uppercase tracking-wider px-2 py-0.5 ${scFn(r.status)}`}>{slFn(r.status)}</span></div><span className="font-display text-lg font-semibold text-[#f5f0e0]">{fm(r.total)}</span></div>
+            <div className="text-xs text-white/40"><p>{r.experience} · {new Date(r.date + 'T12:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} · {r.adults} pers.</p><p>{r.user_name} · {r.user_phone}</p></div>
+          </div>)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ========== USERS PANEL (admin) ==========
-function UsersPanel() {
+function UsersPanel({ currentUserId, onViewAs }: { currentUserId: string; onViewAs: (u: any) => void }) {
   const [users, setUsers] = useState<any[]>([])
+  const [affiliates, setAffiliates] = useState<any[]>([])
   const [search, setSearch] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
-  useEffect(() => { ld() }, [])
+  useEffect(() => { ld(); ldAff() }, [])
   const ld = async () => { const { data } = await supabase.from('users').select('*').order('created_at', { ascending: false }); if (data) setUsers(data) }
+  const ldAff = async () => { const { data } = await supabase.from('affiliates').select('*'); if (data) setAffiliates(data) }
+
+  const getAffiliate = (userId: string) => affiliates.find(a => a.user_id === userId)
+  const isSelf = (id: string) => id === currentUserId
 
   const updateRole = async (id: string, role: string) => {
+    if (isSelf(id)) { alert('No podés cambiar tu propio rol'); return }
     await supabase.from('users').update({ role, updated_at: new Date().toISOString() }).eq('id', id)
     ld()
   }
@@ -577,7 +657,13 @@ function UsersPanel() {
     await supabase.from('users').update({ [field]: value, updated_at: new Date().toISOString() }).eq('id', id)
     ld()
   }
+  const updateAffCommission = async (affId: string, value: string) => {
+    const val = value.trim() === '' ? null : parseFloat(value)
+    await supabase.from('affiliates').update({ custom_commission_percent: val }).eq('id', affId)
+    ldAff()
+  }
   const deleteUser = async (id: string, email: string) => {
+    if (isSelf(id)) { alert('No podés eliminar tu propia cuenta'); return }
     if (!confirm(`¿Eliminar usuario "${email}"? Esta acción no se puede deshacer.`)) return
     await supabase.from('users').delete().eq('id', id)
     ld()
@@ -590,6 +676,7 @@ function UsersPanel() {
   })
 
   const roleColor = (r: string) => r === 'admin' ? 'text-red-400 bg-red-400/10' : r === 'afiliado' ? 'text-[#c5a55a] bg-[#c5a55a]/10' : 'text-white/40 bg-white/5'
+  const fm = (n: number) => '$' + Math.round(n).toLocaleString('es-AR')
 
   return (
     <div className="bg-[#132828] border border-[#1e3838] p-6">
@@ -599,41 +686,60 @@ function UsersPanel() {
       </div>
       <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre, email o teléfono..." className="w-full mb-4" />
       <div className="space-y-2">
-        {filtered.map(u => (
-          <div key={u.id} className="border border-[#1e3838] p-3">
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm text-[#f5f0e0] font-medium truncate">{u.name || 'Sin nombre'}</span>
-                  <span className={`text-[.5rem] uppercase tracking-wider px-1.5 py-0.5 ${roleColor(u.role)}`}>{u.role}</span>
+        {filtered.map(u => {
+          const aff = getAffiliate(u.id)
+          const self = isSelf(u.id)
+          return (
+            <div key={u.id} className={`border p-3 ${self ? 'border-red-400/20 bg-red-400/5' : 'border-[#1e3838]'}`}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm text-[#f5f0e0] font-medium truncate">{u.name || 'Sin nombre'}</span>
+                    <span className={`text-[.5rem] uppercase tracking-wider px-1.5 py-0.5 ${roleColor(u.role)}`}>{u.role}</span>
+                    {self && <span className="text-[.5rem] px-1.5 py-0.5 bg-red-400/10 text-red-400">(Vos)</span>}
+                    {aff && <span className="text-[.5rem] px-1.5 py-0.5 bg-[#c5a55a]/10 text-[#c5a55a] font-mono">{aff.affiliate_code}</span>}
+                  </div>
+                  <div className="text-[.6rem] text-white/30 mt-0.5">{u.email}{u.phone ? ' · ' + u.phone : ''}</div>
                 </div>
-                <div className="text-[.6rem] text-white/30 mt-0.5">{u.email}{u.phone ? ' · ' + u.phone : ''}</div>
-                <div className="text-[.55rem] text-white/15">Creado: {new Date(u.created_at).toLocaleDateString('es-AR')}</div>
+                <div className="flex gap-1 ml-2 flex-shrink-0">
+                  {!self && <button onClick={() => onViewAs(u)} className="text-[.55rem] px-2 py-1 text-blue-400 bg-blue-400/10" title="Ver como este usuario">👁</button>}
+                  {!self && <button onClick={() => setEditingId(editingId === u.id ? null : u.id)} className="text-[.55rem] px-2 py-1 text-[#c5a55a] bg-[#c5a55a]/10">✏</button>}
+                  {!self && <button onClick={() => deleteUser(u.id, u.email)} className="text-[.55rem] px-2 py-1 text-red-400 bg-red-400/10">✕</button>}
+                  {self && <span className="text-[.55rem] text-red-400/40 px-2 py-1">Protegido</span>}
+                </div>
               </div>
-              <div className="flex gap-1 ml-2 flex-shrink-0">
-                <button onClick={() => setEditingId(editingId === u.id ? null : u.id)} className="text-[.55rem] px-2 py-1 text-[#c5a55a] bg-[#c5a55a]/10">✏</button>
-                <button onClick={() => deleteUser(u.id, u.email)} className="text-[.55rem] px-2 py-1 text-red-400 bg-red-400/10">✕</button>
-              </div>
+
+              {editingId === u.id && !self && <div className="border-t border-[#1e3838] mt-2 pt-2 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div><label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Nombre</label><Input defaultValue={u.name || ''} onBlur={e => updateUser(u.id, 'name', e.target.value)} className="w-full text-xs p-1.5" /></div>
+                  <div><label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Teléfono</label><Input defaultValue={u.phone || ''} onBlur={e => updateUser(u.id, 'phone', e.target.value)} className="w-full text-xs p-1.5" /></div>
+                </div>
+                <div>
+                  <label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Rol</label>
+                  <div className="flex gap-2">
+                    {['cliente', 'afiliado', 'admin'].map(r => (
+                      <button key={r} onClick={() => updateRole(u.id, r)} className={`text-[.6rem] uppercase px-3 py-1.5 border ${u.role === r ? 'border-[#c5a55a] bg-[#c5a55a]/10 text-[#c5a55a]' : 'border-[#1e3838] text-white/30'}`}>{r}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom commission for affiliates */}
+                {(u.role === 'afiliado' && aff) && <div>
+                  <label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Comisión personalizada <span className="text-white/15">(vacío = estándar por niveles)</span></label>
+                  <div className="flex items-center gap-2">
+                    <Input type="number" step="0.5" defaultValue={aff.custom_commission_percent || ''} placeholder="Estándar" onBlur={e => updateAffCommission(aff.id, e.target.value)} className="w-24 text-xs p-1.5" />
+                    <span className="text-xs text-white/30">%</span>
+                    {aff.custom_commission_percent && <span className="text-[.55rem] text-[#c5a55a]">Custom: {aff.custom_commission_percent}%</span>}
+                  </div>
+                </div>}
+
+                <div className="flex items-center justify-between">
+                  <button onClick={() => updateUser(u.id, 'is_active', !u.is_active)} className={`text-[.6rem] px-3 py-1.5 ${u.is_active ? 'text-green-400 bg-green-400/10 border border-green-400/20' : 'text-red-400 bg-red-400/10 border border-red-400/20'}`}>{u.is_active ? 'Activo' : 'Inactivo'}</button>
+                </div>
+              </div>}
             </div>
-            {editingId === u.id && <div className="border-t border-[#1e3838] mt-2 pt-2 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div><label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Nombre</label><Input defaultValue={u.name || ''} onBlur={e => updateUser(u.id, 'name', e.target.value)} className="w-full text-xs p-1.5" /></div>
-                <div><label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Teléfono</label><Input defaultValue={u.phone || ''} onBlur={e => updateUser(u.id, 'phone', e.target.value)} className="w-full text-xs p-1.5" /></div>
-              </div>
-              <div>
-                <label className="block text-[.5rem] uppercase text-white/30 mb-0.5">Rol</label>
-                <div className="flex gap-2">
-                  {['cliente', 'afiliado', 'admin'].map(r => (
-                    <button key={r} onClick={() => updateRole(u.id, r)} className={`text-[.6rem] uppercase px-3 py-1.5 border ${u.role === r ? 'border-[#c5a55a] bg-[#c5a55a]/10 text-[#c5a55a]' : 'border-[#1e3838] text-white/30'}`}>{r}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <button onClick={() => updateUser(u.id, 'is_active', !u.is_active)} className={`text-[.6rem] px-3 py-1.5 ${u.is_active ? 'text-green-400 bg-green-400/10 border border-green-400/20' : 'text-red-400 bg-red-400/10 border border-red-400/20'}`}>{u.is_active ? 'Activo' : 'Inactivo'}</button>
-              </div>
-            </div>}
-          </div>
-        ))}
+          )
+        })}
         {filtered.length === 0 && <p className="text-center text-white/20 text-xs py-4">No se encontraron usuarios.</p>}
       </div>
     </div>
