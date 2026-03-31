@@ -110,7 +110,18 @@ export default function PanelPage() {
           {reservas.length === 0 && <p className="text-center text-white/30 text-sm py-8">No hay reservas.</p>}
           {reservas.map(r => <div key={r.id} className="bg-[#132828] border border-[#1e3838] p-4">
             <div className="flex items-start justify-between mb-2"><div><span className="font-mono text-sm text-[#dcc07a] font-semibold tracking-wider">{r.code}</span><span className={`ml-2 text-[.6rem] uppercase tracking-wider px-2 py-0.5 ${sc(r.status)}`}>{sl(r.status)}</span></div><span className="font-display text-lg font-semibold text-[#f5f0e0]">{fm(r.total)}</span></div>
-            <div className="text-xs text-white/40"><p>{r.experience} · {new Date(r.date + 'T12:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} · {r.adults} pers.</p><p>{r.user_name} · {r.user_phone}</p>{r.notes && r.notes.includes('[MANUAL]') && <span className="text-[.55rem] px-1 py-0.5 bg-blue-400/10 text-blue-400 mt-1 inline-block">Manual</span>}</div>
+            <div className="text-xs text-white/40">
+              <p>{r.experience} · {new Date(r.date + 'T12:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} · {r.adults} pers.</p>
+              <p>{r.user_name} · {r.user_phone}</p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {r.notes && r.notes.includes('[MANUAL]') && <span className="text-[.55rem] px-1 py-0.5 bg-blue-400/10 text-blue-400">Manual</span>}
+                {r.payment_type === 'deposit' && <span className="text-[.55rem] px-1 py-0.5 bg-yellow-400/10 text-yellow-400">Seña</span>}
+                {r.is_gift && <span className="text-[.55rem] px-1 py-0.5 bg-pink-400/10 text-pink-400">🎁 → {r.gifted_to_name}</span>}
+                {r.affiliate_code_used && <span className="text-[.55rem] px-1 py-0.5 bg-[#c5a55a]/10 text-[#c5a55a]">Ref: {r.affiliate_code_used}</span>}
+                {r.coupon_code && <span className="text-[.55rem] px-1 py-0.5 bg-white/5 text-white/30">Cupón: {r.coupon_code}</span>}
+              </div>
+              {r.payment_type === 'deposit' && r.amount_remaining > 0 && <p className="text-[.55rem] text-yellow-400 mt-1">Resta: {fm(r.amount_remaining)} a cobrar en el lugar</p>}
+            </div>
             {isAdmin && r.status === 'pending' && <div className="flex gap-2 mt-3"><button onClick={() => urs(r.id, 'paid')} className="text-[.6rem] uppercase px-3 py-1.5 bg-green-400/10 text-green-400 border border-green-400/20">Pagado</button><button onClick={() => urs(r.id, 'cancelled')} className="text-[.6rem] uppercase px-3 py-1.5 bg-red-400/10 text-red-400 border border-red-400/20">Cancelar</button></div>}
             {isAdmin && r.status === 'paid' && <button onClick={() => urs(r.id, 'completed')} className="mt-3 text-[.6rem] uppercase px-3 py-1.5 bg-blue-400/10 text-blue-400 border border-blue-400/20">Completado</button>}
           </div>)}
@@ -136,6 +147,32 @@ export default function PanelPage() {
             <div className="flex items-center justify-between">
               <div><label className="text-xs text-white/50">Anticipación mínima para reservar</label><p className="text-[.55rem] text-white/20">Horas de anticipación requeridas</p></div>
               <div className="flex items-center gap-2"><Input type="number" defaultValue={config.min_anticipation_hours || 48} onBlur={e => uc('min_anticipation_hours', parseInt(e.target.value) || 48)} className="w-20 text-right" /><span className="text-xs text-white/30">hs</span></div>
+            </div>
+          </div>
+
+          {/* PAGOS & MERCADO PAGO */}
+          <div className="bg-[#132828] border border-[#1e3838] p-6 space-y-4">
+            <h3 className="font-display text-lg text-[#f5f0e0]">Pagos & Mercado Pago</h3>
+            <div className="flex items-center justify-between">
+              <div><label className="text-xs text-white/50">Permitir seña parcial</label><p className="text-[.55rem] text-white/20">El cliente puede pagar un % y el resto al llegar</p></div>
+              <button onClick={() => uc('deposit_enabled', !config.deposit_enabled)} className={`px-4 py-1.5 text-xs font-semibold ${config.deposit_enabled ? 'bg-green-400/10 text-green-400 border border-green-400/20' : 'bg-red-400/10 text-red-400 border border-red-400/20'}`}>{config.deposit_enabled ? 'Activo' : 'Off'}</button>
+            </div>
+            {config.deposit_enabled && <div className="flex items-center justify-between">
+              <div><label className="text-xs text-white/50">Porcentaje de seña</label><p className="text-[.55rem] text-white/20">100 = pago total obligatorio</p></div>
+              <div className="flex items-center gap-2"><Input type="number" defaultValue={config.deposit_percent || 100} min={10} max={100} onBlur={e => uc('deposit_percent', Math.max(10, Math.min(100, parseInt(e.target.value) || 100)))} className="w-20 text-right" /><span className="text-xs text-white/30">%</span></div>
+            </div>}
+            <div className="flex items-center justify-between">
+              <div><label className="text-xs text-white/50">Máx. modificaciones de fecha</label><p className="text-[.55rem] text-white/20">Cuántas veces puede cambiar la fecha</p></div>
+              <Input type="number" defaultValue={config.max_modifications || 2} onBlur={e => uc('max_modifications', parseInt(e.target.value) || 2)} className="w-20 text-right" />
+            </div>
+            <div className="border-t border-[#1e3838] pt-4">
+              <div className="text-[.6rem] uppercase tracking-wider text-[#c5a55a] mb-3">Credenciales Mercado Pago</div>
+              <p className="text-[.55rem] text-white/20 mb-3">Obtené tus credenciales en mercadopago.com.ar → Tu negocio → Configuración → Credenciales</p>
+              <div className="space-y-2">
+                <div><label className="block text-[.5rem] uppercase text-white/30 mb-1">Public Key</label><Input defaultValue={config.mp_public_key || ''} onBlur={e => uc('mp_public_key', e.target.value)} placeholder="APP_USR-..." className="w-full text-xs font-mono" /></div>
+                <div><label className="block text-[.5rem] uppercase text-white/30 mb-1">Access Token</label><Input type="password" defaultValue={config.mp_access_token || ''} onBlur={e => uc('mp_access_token', e.target.value)} placeholder="APP_USR-..." className="w-full text-xs font-mono" /></div>
+              </div>
+              {config.mp_access_token ? <p className="text-[.55rem] text-green-400 mt-2">✓ Mercado Pago configurado — los pagos se procesan automáticamente</p> : <p className="text-[.55rem] text-yellow-400 mt-2">⚠ Sin configurar — las reservas se crean como pendientes (pago por WhatsApp)</p>}
             </div>
           </div>
           <div className="bg-[#132828] border border-[#1e3838] p-6 space-y-4">

@@ -119,19 +119,27 @@ export async function POST(req: NextRequest) {
 
       // If approved -> update reservation + calculate commissions
       if (newStatus === 'approved') {
-        // Update reservation status
-        await supabase.from('reservations')
-          .update({ status: 'paid', updated_at: new Date().toISOString() })
-          .eq('id', payment.reservation_id)
-
-        // Get reservation total for commission calculation
+        // Get reservation for deposit handling
         const { data: res } = await supabase
           .from('reservations')
-          .select('id, total')
+          .select('*')
           .eq('id', payment.reservation_id)
           .single()
 
         if (res) {
+          const amountPaid = (res.amount_paid || 0) + mpPayment.transaction_amount
+          const amountRemaining = Math.max(0, res.total - amountPaid)
+
+          // Update reservation status and payment tracking
+          await supabase.from('reservations')
+            .update({
+              status: 'paid',
+              amount_paid: amountPaid,
+              amount_remaining: amountRemaining,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', payment.reservation_id)
+
           // Calculate commissions via DB function
           await supabase.rpc('calculate_commissions', {
             p_reservation_id: res.id,

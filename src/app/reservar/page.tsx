@@ -34,6 +34,9 @@ export default function ReservarPage() {
   const [loading, setLoading] = useState(false)
   const [availability, setAvailability] = useState<Record<string, { glow: number; black: number }>>({})
   const [allIncDiscount, setAllIncDiscount] = useState(0)
+  const [depositEnabled, setDepositEnabled] = useState(false)
+  const [depositPercent, setDepositPercent] = useState(100)
+  const [paymentChoice, setPaymentChoice] = useState<'full' | 'deposit'>('full')
   const [currentMonth, setCurrentMonth] = useState(() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') })
 
   const selectedPkg = packages.find(p => p.slug === exp)
@@ -62,6 +65,8 @@ export default function ReservarPage() {
     supabase.from('site_config').select('*').single().then(({ data }) => {
       if (data) {
         setAllIncDiscount(data.all_inclusive_discount || 0)
+        setDepositEnabled(data.deposit_enabled || false)
+        setDepositPercent(data.deposit_percent || 100)
       }
     })
     supabase.from('special_events').select('*').eq('active', true).then(({ data }) => { if (data) setSpecialEvents(data) })
@@ -103,17 +108,30 @@ export default function ReservarPage() {
     if (!name.trim() || !phone.trim()) { setError('Completá nombre y teléfono'); return }
     setLoading(true); setError('')
     try {
+      const refParam = new URLSearchParams(window.location.search).get('ref')
       const res = await fetch('/api/reservas', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           experience: exp, date: selectedDate, adults: personCount, children, mode, all_inclusive: allInclusive,
           extras: selectedExtras.map(k => extrasList.find(e => e.key === k)?.name).filter(Boolean),
-          user_name: name, user_phone: phone, user_email: email, coupon_code: coupon || null, notes: dayEvent ? 'Evento: ' + dayEvent.title : ''
+          user_name: name, user_phone: phone, user_email: email, coupon_code: coupon || null,
+          notes: dayEvent ? 'Evento: ' + dayEvent.title : '',
+          affiliate_code: refParam || null,
+          payment_choice: paymentChoice
         })
       })
       const data = await res.json()
       if (data.error) { setError(data.error); setLoading(false); return }
-      setReserva(data.reserva); setStep('done')
+
+      // If MP is configured and we have an init_point, redirect to MP
+      if (data.mp_init_point) {
+        window.location.href = data.mp_init_point
+        return
+      }
+
+      // No MP configured - go to confirmation page
+      setReserva(data.reserva)
+      setStep('done')
     } catch { setError('Error de conexión') }
     setLoading(false)
   }
@@ -341,26 +359,41 @@ export default function ReservarPage() {
             <div className="text-[.65rem] text-white/20 mt-2">📅 {selectedDate && new Date(selectedDate + 'T12:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
             <div className="text-[.65rem] text-white/20">💳 Transferencia · Efectivo · Tarjeta hasta 2 cuotas sin interés</div>
           </div>
+          {/* Deposit option */}
+          {depositEnabled && depositPercent < 100 && (
+            <div className="space-y-2 mb-4">
+              <div className="text-[.6rem] uppercase tracking-wider text-white/30">¿Cómo querés pagar?</div>
+              <label className={'flex items-center gap-3 p-3 border cursor-pointer transition-all ' + (paymentChoice === 'full' ? 'border-[#c5a55a] bg-[#c5a55a]/5' : 'border-[#1e3838]')} onClick={() => setPaymentChoice('full')}>
+                <input type="radio" name="payment" checked={paymentChoice === 'full'} readOnly className="accent-[#c5a55a]" />
+                <div><div className="text-sm text-[#f5f0e0]">Pago total</div><div className="text-[.6rem] text-white/30">{fmtMoney(total)}</div></div>
+              </label>
+              <label className={'flex items-center gap-3 p-3 border cursor-pointer transition-all ' + (paymentChoice === 'deposit' ? 'border-[#c5a55a] bg-[#c5a55a]/5' : 'border-[#1e3838]')} onClick={() => setPaymentChoice('deposit')}>
+                <input type="radio" name="payment" checked={paymentChoice === 'deposit'} readOnly className="accent-[#c5a55a]" />
+                <div><div className="text-sm text-[#f5f0e0]">Seña del {depositPercent}%</div><div className="text-[.6rem] text-white/30">Pagás {fmtMoney(Math.round(total * depositPercent / 100))} ahora · Resto ({fmtMoney(total - Math.round(total * depositPercent / 100))}) al llegar</div></div>
+              </label>
+            </div>
+          )}
           {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-xs p-3 mb-4">{error}</div>}
           <div className="flex gap-2">
             <button onClick={() => setStep('extras')} className="flex-1 p-3 border border-[#1e3838] text-white/50 text-sm">← Volver</button>
-            <button onClick={handleSubmit} disabled={loading} className="flex-1 p-3 bg-gradient-to-r from-[#c5a55a] to-[#a08840] text-[#0c1a1a] text-sm font-semibold disabled:opacity-50">{loading ? 'Procesando...' : 'Confirmar Reserva'}</button>
+            <button onClick={handleSubmit} disabled={loading} className="flex-1 p-3 bg-gradient-to-r from-[#c5a55a] to-[#a08840] text-[#0c1a1a] text-sm font-semibold disabled:opacity-50">{loading ? 'Procesando...' : paymentChoice === 'deposit' ? `Pagar Seña ${fmtMoney(Math.round(total * depositPercent / 100))}` : `Pagar ${fmtMoney(total)}`}</button>
           </div>
         </div>)}
 
-        {/* ===== DONE ===== */}
+        {/* ===== DONE (no MP configured - show inline confirmation) ===== */}
         {step === 'done' && reserva && (<div className="text-center">
           <div className="text-4xl mb-4">✅</div>
-          <h2 className="font-display text-2xl font-medium text-[#f5f0e0] mb-2">¡Reserva Confirmada!</h2>
+          <h2 className="font-display text-2xl font-medium text-[#f5f0e0] mb-2">¡Reserva Creada!</h2>
           <div className="bg-[#c5a55a]/10 border border-[#c5a55a]/20 p-4 mb-4"><div className="text-[.6rem] tracking-widest uppercase text-white/30 mb-1">Código de reserva</div><div className="font-display text-3xl font-bold text-[#dcc07a] tracking-wider">{reserva.code}</div></div>
           <div className="text-xs text-white/40 space-y-1 mb-4">
             <p>{selectedPkg?.name || reserva.experience} · {new Date(reserva.date + 'T12:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}</p>
             <p>{reserva.adults} persona{reserva.adults > 1 ? 's' : ''} · Total: {fmtMoney(reserva.total)}</p>
-            <p className="text-[#c5a55a]">Estado: Pendiente de pago</p>
+            <p className="text-yellow-400">Estado: Pendiente de pago</p>
+            <p className="text-[.6rem] text-white/20 mt-2">Mercado Pago no está configurado todavía. Coordiná el pago por WhatsApp.</p>
           </div>
           <div className="space-y-2">
-            <a href={'https://wa.me/5491163065144?text=' + encodeURIComponent('🎫 RESERVA RIECK: ' + reserva.code + '\n' + (selectedPkg?.name || reserva.experience) + '\n' + reserva.adults + ' personas · Total: ' + fmtMoney(reserva.total) + '\n\n¡Quiero confirmar el pago!')} target="_blank" className="block w-full p-3 bg-gradient-to-r from-[#c5a55a] to-[#a08840] text-[#0c1a1a] text-sm font-semibold text-center">Confirmar Pago por WhatsApp</a>
-            <button onClick={() => { navigator.clipboard.writeText(window.location.origin + '/panel?code=' + reserva.code); alert('Link copiado!') }} className="block w-full p-3 border border-[#1e3838] text-white/50 text-sm text-center hover:border-[#c5a55a] cursor-pointer">📋 Copiar link de reserva</button>
+            <a href={'https://wa.me/5491163065144?text=' + encodeURIComponent('🎫 RESERVA RIECK: ' + reserva.code + '\n' + (selectedPkg?.name || reserva.experience) + '\n' + reserva.adults + ' personas · Total: ' + fmtMoney(reserva.total) + '\n\n¡Quiero confirmar el pago!')} target="_blank" className="block w-full p-3 bg-gradient-to-r from-[#c5a55a] to-[#a08840] text-[#0c1a1a] text-sm font-semibold text-center">Confirmar por WhatsApp</a>
+            <a href={'/reservar/confirmado?code=' + reserva.code} className="block w-full p-3 border border-[#c5a55a]/20 text-[#c5a55a] text-sm text-center hover:bg-[#c5a55a]/5">Ver mi reserva · Modificar · Regalar</a>
             <a href="/" className="block text-xs text-white/30 hover:text-[#dcc07a] mt-2">Volver al sitio</a>
           </div>
         </div>)}
